@@ -1,0 +1,26 @@
+flowchart TD
+    User([User]) --> UI["Streamlit UI (app.py)"]
+    INVDATA[("Synthetic invoices")] --> UI
+    UI -->|"clicks Process Invoice"| ORCH["process_invoice() - orchestrator"]
+    ORCH --> P["1. Planner Agent<br/>planner_agent()"]
+    P -->|"task list"| D["2. Document Processing Agent<br/>document_agent()"]
+    D --> GATE{"Was any invoice data extracted?"}
+    GATE -->|"No"| INC["INCOMPLETE - ADDITIONAL INFORMATION REQUIRED"]
+    GATE -->|"Yes"| V["3. Validation Agent<br/>validation_agent()"]
+    EXIST[("Existing invoices")] -.-> V
+    PAY[("Payment records")] -.-> V
+    V -->|"5 check results"| C["4. Critic Agent<br/>critic_agent()"]
+    C --> DEC{"Conditional decision (if-else)"}
+    DEC -->|"a rule failed"| FLAG["FLAGGED FOR HUMAN REVIEW"]
+    DEC -->|"information missing"| INC
+    DEC -->|"all checks passed"| VER["VERIFIED - ELIGIBLE FOR HUMAN APPROVAL REVIEW"]
+    VER --> FINAL["Final status and reasons"]
+    FLAG --> FINAL
+    INC --> FINAL
+    FINAL --> RES["Streamlit results page"]
+    RES --> User
+    P -.-> LOG["Audit log"]
+    D -.-> LOG
+    V -.-> LOG
+    C -.-> LOG
+    LOG --> RES
